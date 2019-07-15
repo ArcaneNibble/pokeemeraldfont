@@ -37,8 +37,8 @@ def addglyph(root, name):
     return lastglyphid + 1
 
 
-TEST = '''<svg xmlns="http://www.w3.org/2000/svg" version="1.2" height="16" width="16" transform="scale(1,-1)">
-    <circle cx="8" cy="8" r="8" stroke="black" stroke-width="3" fill="red"/>
+TEST = '''<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+    <circle cx="1024" cy="-1024" r="1024" stroke="black" stroke-width="3" fill="red"/>
 </svg>'''
 
 
