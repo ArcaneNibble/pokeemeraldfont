@@ -62,23 +62,6 @@ def addsvg(svgnode, glyphid, svgdata):
     svgdoc.text = svgdata
 
 
-def build_pokemon_font(inttxfn, outttxfn):
-    ET.register_namespace('', 'http://www.w3.org/2000/svg')
-    tree = ET.parse(inttxfn)
-    root = tree.getroot()
-
-    newid = addglyph(root, 'poketest')
-    print(newid)
-    addcmap(root, 0xe000, 'poketest')
-
-    svgdata = pokeicontosvg('pokeemerald/graphics/pokemon/eevee/icon.png')
-
-    svgnode = ET.SubElement(root, 'SVG')
-    addsvg(svgnode, newid, svgdata)
-
-    tree.write(outttxfn, encoding='utf-8', xml_declaration=True)
-
-
 def pokeicontosvg(pokeicon):
     im = Image.open(pokeicon)
     print(im)
@@ -115,6 +98,23 @@ def pokeicontosvg(pokeicon):
     with open('test.svg', 'w') as f:
         f.write(svgdata)
     return svgdata
+
+
+def build_pokemon_font(inttxfn, outttxfn):
+    ET.register_namespace('', 'http://www.w3.org/2000/svg')
+    tree = ET.parse(inttxfn)
+    root = tree.getroot()
+
+    newid = addglyph(root, 'poketest')
+    print(newid)
+    addcmap(root, 0xe000, 'poketest')
+
+    svgdata = pokeicontosvg('pokeemerald/graphics/pokemon/eevee/icon.png')
+
+    svgnode = ET.SubElement(root, 'SVG')
+    addsvg(svgnode, newid, svgdata)
+
+    tree.write(outttxfn, encoding='utf-8', xml_declaration=True)
 
 
 def main():
