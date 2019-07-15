@@ -1,5 +1,6 @@
 import sys
 import xml.etree.ElementTree as ET
+from PIL import Image
 
 
 def addglyph(root, name):
@@ -37,11 +38,6 @@ def addglyph(root, name):
     return lastglyphid + 1
 
 
-TEST = '''<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
-    <circle cx="1024" cy="-1024" r="1024" stroke="black" stroke-width="3" fill="red"/>
-</svg>'''
-
-
 def addcmap(root, codepoint, name):
     cmap = root.find('cmap')
     for cmaptable in cmap:
@@ -75,10 +71,50 @@ def build_pokemon_font(inttxfn, outttxfn):
     print(newid)
     addcmap(root, 0xe000, 'poketest')
 
+    svgdata = pokeicontosvg('pokeemerald/graphics/pokemon/eevee/icon.png')
+
     svgnode = ET.SubElement(root, 'SVG')
-    addsvg(svgnode, newid, TEST)
+    addsvg(svgnode, newid, svgdata)
 
     tree.write(outttxfn, encoding='utf-8', xml_declaration=True)
+
+
+def pokeicontosvg(pokeicon):
+    im = Image.open(pokeicon)
+    print(im)
+    assert im.size == (32, 64)
+    im = im.convert('RGBA')
+
+    svgroot = ET.Element('svg')
+    svgroot.attrib['xmlns'] = 'http://www.w3.org/2000/svg'
+    svgroot.attrib['version'] = '1.1'
+    # # DEBUG
+    # svgroot.attrib['width'] = '2048'
+    # svgroot.attrib['height'] = '2048'
+
+    for x in range(32):
+        for y in range(32):
+            r, g, b, a = im.getpixel((x, y))
+            if a == 0:
+                continue
+
+            # XXX Not strictly necessary
+            assert a == 255
+
+            print(r, g, b)
+
+            rect = ET.SubElement(svgroot, 'rect')
+            rect.attrib['width'] = '64'
+            rect.attrib['height'] = '64'
+            rect.attrib['x'] = str(x * 64)
+            rect.attrib['y'] = str(-(32 - y) * 64)
+            rect.attrib['fill'] = 'rgb({},{},{})'.format(r, g, b)
+
+    svgdata = ET.tostring(svgroot).decode()
+    print(svgdata)
+    with open('test.svg', 'w') as f:
+        f.write(svgdata)
+    return svgdata
 
 
 def main():
