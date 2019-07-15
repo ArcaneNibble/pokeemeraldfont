@@ -124,6 +124,10 @@ def addligature(ligaturenode, pokemonname, glyphname):
             pokemonnamechars[i] = 'hyphen'
         if pokemonnamechars[i] == ' ':
             pokemonnamechars[i] = 'space'
+        if pokemonnamechars[i] == '!':
+            pokemonnamechars[i] = 'exclam'
+        if pokemonnamechars[i] == '?':
+            pokemonnamechars[i] = 'question'
         if pokemonnamechars[i] == '0':
             pokemonnamechars[i] = 'zero'
         if pokemonnamechars[i] == '1':
@@ -192,6 +196,25 @@ def build_pokemon_font(inttxfn, outttxfn):
         addcmap(root, 0xe000 + pokecount, newname)
         addsvg(svgnode, newid, svgdata)
         addligature(ligaturenode, pokemon, newname)
+
+        pokecount += 1
+
+    for unown in "abcdefghijklmnopqrstuvwxyz!?":
+        if unown == '!':
+            unown_ = 'exclamation_mark'
+        elif unown == '?':
+            unown_ = 'question_mark'
+        else:
+            unown_ = unown
+        newname = 'poke_unown_' + unown_
+        print(newname)
+        newid = addglyph(root, newname)
+        svgdata = pokeicontosvg(
+            'pokeemerald/graphics/pokemon/unown/icon_{}.png'.format(unown_))
+        # print(newid)
+        addcmap(root, 0xe000 + pokecount, newname)
+        addsvg(svgnode, newid, svgdata)
+        addligature(ligaturenode, 'unown{}'.format(unown), newname)
 
         pokecount += 1
 
