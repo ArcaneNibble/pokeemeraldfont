@@ -1,3 +1,4 @@
+import os
 import sys
 import xml.etree.ElementTree as ET
 from PIL import Image
@@ -44,7 +45,7 @@ def addcmap(root, codepoint, name):
         if cmaptable.tag == 'tableVersion':
             continue
 
-        print(cmaptable)
+        # print(cmaptable)
         mapentry = ET.SubElement(cmaptable, 'map')
         mapentry.attrib['code'] = "0x{:x}".format(codepoint)
         mapentry.attrib['name'] = name
@@ -54,7 +55,7 @@ def addsvg(svgnode, glyphid, svgdata):
     svgroot = ET.fromstring(svgdata)
     svgroot.attrib['id'] = "glyph{}".format(glyphid)
     svgdata = ET.tostring(svgroot).decode()
-    print(svgdata)
+    # print(svgdata)
 
     svgdoc = ET.SubElement(svgnode, 'svgDoc')
     svgdoc.attrib['startGlyphID'] = str(glyphid)
@@ -64,7 +65,7 @@ def addsvg(svgnode, glyphid, svgdata):
 
 def pokeicontosvg(pokeicon):
     im = Image.open(pokeicon)
-    print(im)
+    # print(im)
     assert im.size == (32, 64)
     im = im.convert('RGBA')
 
@@ -84,7 +85,7 @@ def pokeicontosvg(pokeicon):
             # XXX Not strictly necessary
             assert a == 255
 
-            print(r, g, b)
+            # print(r, g, b)
 
             rect = ET.SubElement(svgroot, 'rect')
             rect.attrib['width'] = '64'
@@ -94,9 +95,9 @@ def pokeicontosvg(pokeicon):
             rect.attrib['fill'] = 'rgb({},{},{})'.format(r, g, b)
 
     svgdata = ET.tostring(svgroot).decode()
-    print(svgdata)
-    with open('test.svg', 'w') as f:
-        f.write(svgdata)
+    # print(svgdata)
+    # with open('test.svg', 'w') as f:
+    #     f.write(svgdata)
     return svgdata
 
 
@@ -104,15 +105,36 @@ def build_pokemon_font(inttxfn, outttxfn):
     ET.register_namespace('', 'http://www.w3.org/2000/svg')
     tree = ET.parse(inttxfn)
     root = tree.getroot()
-
-    newid = addglyph(root, 'poketest')
-    print(newid)
-    addcmap(root, 0xe000, 'poketest')
-
-    svgdata = pokeicontosvg('pokeemerald/graphics/pokemon/eevee/icon.png')
-
     svgnode = ET.SubElement(root, 'SVG')
-    addsvg(svgnode, newid, svgdata)
+
+    pokecount = 0
+    for pokemon in os.listdir('pokeemerald/graphics/pokemon'):
+        if pokemon == 'circled_question_mark':
+            continue
+        if pokemon == 'double_question_mark':
+            continue
+        if pokemon == 'icon_palettes':
+            continue
+        if pokemon == 'question_mark':
+            continue
+
+        if pokemon == 'unown':
+            # Needs special handling
+            continue
+
+        print(pokemon)
+
+        newname = 'poke' + pokemon
+        newid = addglyph(root, newname)
+        svgdata = pokeicontosvg('pokeemerald/graphics/pokemon/{}/icon.png'.format(pokemon))
+        # print(newid)
+        addcmap(root, 0xe000 + pokecount, newname)
+        addsvg(svgnode, newid, svgdata)
+
+        pokecount += 1
+
+        # break
+    print("Processed {} Pokemon".format(pokecount))
 
     tree.write(outttxfn, encoding='utf-8', xml_declaration=True)
 
