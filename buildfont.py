@@ -101,11 +101,71 @@ def pokeicontosvg(pokeicon):
     return svgdata
 
 
+def addligature(ligaturenode, pokemonname, glyphname):
+    if pokemonname == "farfetch_d":
+        pokemonname = "farfetch'd"
+    if pokemonname == "ho_oh":
+        pokemonname = "ho-oh"
+    if pokemonname == "mr_mime":
+        pokemonname = "mr mime"
+    # if pokemonname == "nidoran_f":
+    #     pokemonname = "nidoranf"
+    # if pokemonname == "nidoran_m":
+    #     pokemonname = "nidoranm"
+
+    pokemonnamechars = list(pokemonname)
+    for i in range(len(pokemonnamechars)):
+        if pokemonnamechars[i] == '_':
+            pokemonnamechars[i] = 'underscore'
+            # assert False
+        if pokemonnamechars[i] == "'":
+            pokemonnamechars[i] = 'quotesingle'
+        if pokemonnamechars[i] == '-':
+            pokemonnamechars[i] = 'hyphen'
+        if pokemonnamechars[i] == ' ':
+            pokemonnamechars[i] = 'space'
+        if pokemonnamechars[i] == '0':
+            pokemonnamechars[i] = 'zero'
+        if pokemonnamechars[i] == '1':
+            pokemonnamechars[i] = 'one'
+        if pokemonnamechars[i] == '2':
+            pokemonnamechars[i] = 'two'
+        if pokemonnamechars[i] == '3':
+            pokemonnamechars[i] = 'three'
+        if pokemonnamechars[i] == '4':
+            pokemonnamechars[i] = 'four'
+        if pokemonnamechars[i] == '5':
+            pokemonnamechars[i] = 'five'
+        if pokemonnamechars[i] == '6':
+            pokemonnamechars[i] = 'six'
+        if pokemonnamechars[i] == '7':
+            pokemonnamechars[i] = 'seven'
+        if pokemonnamechars[i] == '8':
+            pokemonnamechars[i] = 'eight'
+        if pokemonnamechars[i] == '9':
+            pokemonnamechars[i] = 'nine'
+    # print(pokemonnamechars)
+
+    ligaset = ligaturenode.find(
+        "./LigatureSet[@glyph='{}']".format(pokemonnamechars[0]))
+    # print(ligaset)
+    if ligaset is None:
+        ligaset = ET.SubElement(ligaturenode, 'LigatureSet')
+        ligaset.attrib['glyph'] = pokemonnamechars[0]
+
+    ligaturenode = ET.SubElement(ligaset, 'Ligature')
+    ligaturenode.attrib['components'] = ','.join(pokemonnamechars[1:])
+    ligaturenode.attrib['glyph'] = glyphname
+
+
 def build_pokemon_font(inttxfn, outttxfn):
     ET.register_namespace('', 'http://www.w3.org/2000/svg')
     tree = ET.parse(inttxfn)
     root = tree.getroot()
     svgnode = ET.SubElement(root, 'SVG')
+    ligaturenode = root.find(
+        "./GSUB/LookupList/Lookup[@index='4']/LigatureSubst")
+    print(ligaturenode)
 
     pokecount = 0
     for pokemon in os.listdir('pokeemerald/graphics/pokemon'):
@@ -124,12 +184,14 @@ def build_pokemon_font(inttxfn, outttxfn):
 
         print(pokemon)
 
-        newname = 'poke' + pokemon
+        newname = 'poke_' + pokemon
         newid = addglyph(root, newname)
-        svgdata = pokeicontosvg('pokeemerald/graphics/pokemon/{}/icon.png'.format(pokemon))
+        svgdata = pokeicontosvg(
+            'pokeemerald/graphics/pokemon/{}/icon.png'.format(pokemon))
         # print(newid)
         addcmap(root, 0xe000 + pokecount, newname)
         addsvg(svgnode, newid, svgdata)
+        addligature(ligaturenode, pokemon, newname)
 
         pokecount += 1
 
