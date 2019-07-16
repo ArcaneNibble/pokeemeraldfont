@@ -172,7 +172,12 @@ def build_pokemon_font(inttxfn, outttxfn):
     print(ligaturenode)
 
     pokecount = 0
-    for pokemon in os.listdir('pokeemerald/graphics/pokemon'):
+    pokemonlist = os.listdir('pokeemerald/graphics/pokemon')
+    pokemonlist.sort()
+    # print(pokemonlist)
+    # Need to invert order so that ligatures are generated in the right order
+    # so that shared prefixes (e.g. mew/mewtwo or porygon/porygon2) work
+    for pokemon in pokemonlist[::-1]:
         if pokemon == 'circled_question_mark':
             continue
         if pokemon == 'double_question_mark':
