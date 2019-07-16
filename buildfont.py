@@ -76,8 +76,8 @@ def pokeicontosvg(pokeicon):
             # print(r, g, b)
 
             rect = ET.SubElement(svgroot, 'rect')
-            rect.attrib['width'] = '64'
-            rect.attrib['height'] = '64'
+            rect.attrib['width'] = '65'
+            rect.attrib['height'] = '65'
             rect.attrib['x'] = str(x * 64)
             rect.attrib['y'] = str(-(32 - y) * 64)
             rect.attrib['fill'] = 'rgb({},{},{})'.format(r, g, b)
@@ -205,16 +205,16 @@ def pokeicontocolr(root, colrnode, glyphname, pokeicon,
             pt = ET.SubElement(contour, 'pt')
             pt.attrib['on'] = '1'
             pt.attrib['x'] = str(fontx)
-            pt.attrib['y'] = str(fonty + 64)
+            pt.attrib['y'] = str(fonty + 65)
 
             pt = ET.SubElement(contour, 'pt')
             pt.attrib['on'] = '1'
-            pt.attrib['x'] = str(fontx + 64)
-            pt.attrib['y'] = str(fonty + 64)
+            pt.attrib['x'] = str(fontx + 65)
+            pt.attrib['y'] = str(fonty + 65)
 
             pt = ET.SubElement(contour, 'pt')
             pt.attrib['on'] = '1'
-            pt.attrib['x'] = str(fontx + 64)
+            pt.attrib['x'] = str(fontx + 65)
             pt.attrib['y'] = str(fonty)
 
         mtx.attrib['lsb'] = str(minx)
