@@ -150,16 +150,50 @@ def addligature(ligaturenode, pokemonname, glyphname):
     ligaturenode.attrib['glyph'] = glyphname
 
 
-def addpixelglyphs(root):
+def pokeicontocolr(root, colrnode, glyphname, pokeicon,
+                   palettelist, palettemap):
+    im = Image.open(pokeicon)
+    # print(im)
+    assert im.size == (32, 64)
+    im = im.convert('RGBA')
+
+    colorglyph = ET.SubElement(colrnode, 'ColorGlyph')
+    colorglyph.attrib['name'] = glyphname
+
+    colorlayers = {}
     for x in range(32):
         for y in range(32):
-            glyphname = 'poke_pixel_{}_{}'.format(x, y)
-            _, ttglyph, mtx = addglyph(root, glyphname)
+            r, g, b, a = im.getpixel((x, y))
+            if a == 0:
+                continue
 
+            # XXX Not strictly necessary
+            assert a == 255
+
+            # print(r, g, b)
+            if (r, g, b) in palettemap:
+                paletteindex = palettemap[(r, g, b)]
+            else:
+                paletteindex = len(palettelist)
+                palettelist.append((r, g, b))
+                palettemap[(r, g, b)] = paletteindex
+
+            if paletteindex not in colorlayers:
+                colorlayers[paletteindex] = []
+            colorlayers[paletteindex].append((x, y))
+
+    # print(colorlayers)
+    for paletteindex, pixels in colorlayers.items():
+        # print(paletteindex, pixels)
+        layerglyphname = '{}_layer{}'.format(glyphname, paletteindex)
+        _, ttglyph, mtx = addglyph(root, layerglyphname)
+
+        minx = 2048
+        for x, y in pixels:
             fontx = x * 64
             fonty = (31 - y) * 64
-
-            mtx.attrib['lsb'] = str(fontx)
+            if fontx < minx:
+                minx = fontx
 
             contour = ET.SubElement(ttglyph, 'contour')
 
@@ -183,46 +217,19 @@ def addpixelglyphs(root):
             pt.attrib['x'] = str(fontx + 64)
             pt.attrib['y'] = str(fonty)
 
-            instructions = ET.SubElement(ttglyph, 'instructions')
+        mtx.attrib['lsb'] = str(minx)
+        instructions = ET.SubElement(ttglyph, 'instructions')
 
-
-def pokeicontocolr(colrnode, glyphname, pokeicon, palettelist, palettemap):
-    im = Image.open(pokeicon)
-    # print(im)
-    assert im.size == (32, 64)
-    im = im.convert('RGBA')
-
-    colorglyph = ET.SubElement(colrnode, 'ColorGlyph')
-    colorglyph.attrib['name'] = glyphname
-
-    for x in range(32):
-        for y in range(32):
-            r, g, b, a = im.getpixel((x, y))
-            if a == 0:
-                continue
-
-            # XXX Not strictly necessary
-            assert a == 255
-
-            # print(r, g, b)
-            if (r, g, b) in palettemap:
-                paletteindex = palettemap[(r, g, b)]
-            else:
-                paletteindex = len(palettelist)
-                palettelist.append((r, g, b))
-                palettemap[(r, g, b)] = paletteindex
-
-            pixglyph = 'poke_pixel_{}_{}'.format(x, y)
-            layernode = ET.SubElement(colorglyph, 'layer')
-            layernode.attrib['name'] = pixglyph
-            layernode.attrib['colorID'] = str(paletteindex)
+        layernode = ET.SubElement(colorglyph, 'layer')
+        layernode.attrib['colorID'] = str(paletteindex)
+        layernode.attrib['name'] = layerglyphname
 
 
 def build_pokemon_font(inttxfn, outttxfn):
     ET.register_namespace('', 'http://www.w3.org/2000/svg')
     tree = ET.parse(inttxfn)
     root = tree.getroot()
-    # svgnode = ET.SubElement(root, 'SVG')
+    svgnode = ET.SubElement(root, 'SVG')
     colrnode = ET.SubElement(root, 'COLR')
     version = ET.SubElement(colrnode, 'version')
     version.attrib['value'] = "0"
@@ -233,15 +240,12 @@ def build_pokemon_font(inttxfn, outttxfn):
         "./GSUB/LookupList/Lookup[@index='4']/LigatureSubst")
     # print(ligaturenode)
 
-    addpixelglyphs(root)
-
     palettelist = []
     palettemap = {}
 
     pokecount = 0
     pokemonlist = os.listdir('pokeemerald/graphics/pokemon')
     pokemonlist.sort()
-    pokemonlist = pokemonlist[:50]
     # print(pokemonlist)
     # Need to invert order so that ligatures are generated in the right order
     # so that shared prefixes (e.g. mew/mewtwo or porygon/porygon2) work
@@ -266,8 +270,9 @@ def build_pokemon_font(inttxfn, outttxfn):
         filename = 'pokeemerald/graphics/pokemon/{}/icon.png'.format(pokemon)
         svgdata = pokeicontosvg(filename)
         # print(newid)
-        # addsvg(svgnode, newid, svgdata)
-        pokeicontocolr(colrnode, newname, filename, palettelist, palettemap)
+        addsvg(svgnode, newid, svgdata)
+        pokeicontocolr(
+            root, colrnode, newname, filename, palettelist, palettemap)
         addligature(ligaturenode, pokemon, newname)
 
         pokecount += 1
@@ -288,8 +293,9 @@ def build_pokemon_font(inttxfn, outttxfn):
             'pokeemerald/graphics/pokemon/unown/icon_{}.png'.format(unown_)
         svgdata = pokeicontosvg(filename)
         # print(newid)
-        # addsvg(svgnode, newid, svgdata)
-        pokeicontocolr(colrnode, newname, filename, palettelist, palettemap)
+        addsvg(svgnode, newid, svgdata)
+        pokeicontocolr(
+            root, colrnode, newname, filename, palettelist, palettemap)
         addligature(ligaturenode, 'unown{}'.format(unown), newname)
 
         pokecount += 1
