@@ -39,18 +39,6 @@ def addglyph(root, name):
     return lastglyphid + 1
 
 
-def addcmap(root, codepoint, name):
-    cmap = root.find('cmap')
-    for cmaptable in cmap:
-        if cmaptable.tag == 'tableVersion':
-            continue
-
-        # print(cmaptable)
-        mapentry = ET.SubElement(cmaptable, 'map')
-        mapentry.attrib['code'] = "0x{:x}".format(codepoint)
-        mapentry.attrib['name'] = name
-
-
 def addsvg(svgnode, glyphid, svgdata):
     svgroot = ET.fromstring(svgdata)
     svgroot.attrib['id'] = "glyph{}".format(glyphid)
@@ -198,11 +186,12 @@ def build_pokemon_font(inttxfn, outttxfn):
         svgdata = pokeicontosvg(
             'pokeemerald/graphics/pokemon/{}/icon.png'.format(pokemon))
         # print(newid)
-        addcmap(root, 0xe000 + pokecount, newname)
         addsvg(svgnode, newid, svgdata)
         addligature(ligaturenode, pokemon, newname)
 
         pokecount += 1
+
+        # break
 
     for unown in "abcdefghijklmnopqrstuvwxyz!?":
         if unown == '!':
@@ -217,7 +206,6 @@ def build_pokemon_font(inttxfn, outttxfn):
         svgdata = pokeicontosvg(
             'pokeemerald/graphics/pokemon/unown/icon_{}.png'.format(unown_))
         # print(newid)
-        addcmap(root, 0xe000 + pokecount, newname)
         addsvg(svgnode, newid, svgdata)
         addligature(ligaturenode, 'unown{}'.format(unown), newname)
 
