@@ -39,6 +39,35 @@ def addglyph(root, name):
     return (lastglyphid + 1, newttglyph, newmtx)
 
 
+def adddummycontour(ttglyph):
+    ttglyph.attrib['xMax'] = '2048'
+    ttglyph.attrib['yMax'] = '2048'
+
+    contour = ET.SubElement(ttglyph, 'contour')
+
+    pt = ET.SubElement(contour, 'pt')
+    pt.attrib['on'] = '1'
+    pt.attrib['x'] = '0'
+    pt.attrib['y'] = '0'
+
+    pt = ET.SubElement(contour, 'pt')
+    pt.attrib['on'] = '1'
+    pt.attrib['x'] = '0'
+    pt.attrib['y'] = '2048'
+
+    pt = ET.SubElement(contour, 'pt')
+    pt.attrib['on'] = '1'
+    pt.attrib['x'] = '2048'
+    pt.attrib['y'] = '2048'
+
+    pt = ET.SubElement(contour, 'pt')
+    pt.attrib['on'] = '1'
+    pt.attrib['x'] = '2048'
+    pt.attrib['y'] = '0'
+
+    instructions = ET.SubElement(ttglyph, 'instructions')
+
+
 def addsvg(svgnode, glyphid, svgdata):
     svgroot = ET.fromstring(svgdata)
     svgroot.attrib['id'] = "glyph{}".format(glyphid)
@@ -266,7 +295,8 @@ def build_pokemon_font(inttxfn, outttxfn):
         print(pokemon)
 
         newname = 'poke_' + pokemon
-        newid, _, _ = addglyph(root, newname)
+        newid, ttglyph, _ = addglyph(root, newname)
+        adddummycontour(ttglyph)
         filename = 'pokeemerald/graphics/pokemon/{}/icon.png'.format(pokemon)
         svgdata = pokeicontosvg(filename)
         # print(newid)
@@ -288,7 +318,8 @@ def build_pokemon_font(inttxfn, outttxfn):
             unown_ = unown
         newname = 'poke_unown_' + unown_
         print(newname)
-        newid, _, _ = addglyph(root, newname)
+        newid, ttglyph, _ = addglyph(root, newname)
+        adddummycontour(ttglyph)
         filename = \
             'pokeemerald/graphics/pokemon/unown/icon_{}.png'.format(unown_)
         svgdata = pokeicontosvg(filename)
